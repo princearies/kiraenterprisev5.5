@@ -31,3 +31,14 @@ database_id = "134deb69-2609-4b84-8e5c-079aa8d9ba3a"
 # [[r2_buckets]]
 # binding = "DOCUMENTS"
 # bucket_name = "kiraenterprise-documents"
+
+# ============================================
+# Environment Variables
+# ============================================
+[vars]
+# JWT secret for signing/verifying tokens (HMAC-SHA256)
+# CHANGE THIS in production - min 32 chars
+JWT_SECRET = "kira-enterprise-dev-secret-change-in-prod"
+# Auth disabled mode: true = demo mode (no password check, use first active user)
+# Set to "false" for production with real password verification
+AUTH_DISABLED = "true"
