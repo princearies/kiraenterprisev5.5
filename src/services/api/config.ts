@@ -11,14 +11,16 @@ export const API_CONFIG = {
   
   // Determine current environment
   get baseUrl(): string {
-    // In production, use the Worker URL
-    if (typeof window !== 'undefined' && window.location.hostname.includes('mykira.workers.dev')) {
-      return this.productionUrl;
+    // In production (deployed to Cloudflare Workers), use relative URLs
+    // The Worker serves both API and frontend from the same origin
+    if (typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')) {
+      return ''; // Use relative URLs - same origin
     }
-    // In development, use local worker or mock
+    // In development, use local worker
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
       return 'http://localhost:8787';
     }
+    // Fallback to production URL
     return this.productionUrl;
   },
 
