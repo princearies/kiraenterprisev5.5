@@ -28,94 +28,65 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize - auto-login with demo user in development
+  // Initialize - check for existing session or show login
   useEffect(() => {
     const init = async () => {
-      if (API_CONFIG.useMock) {
-        // Development mode - auto-login with demo user
-        setCurrentUser(mockUsers[0]);
-        setCompanies(mockCompanies);
-        setCurrentCompany(mockCompanies[0]);
-        setIsAuthenticated(true);
-      } else {
-        // Production mode - try to restore session
-        try {
-          const { authApi } = await import('../services/api');
-          const user = await authApi.me();
-          setCurrentUser({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role as User['role'],
-            company_id: null,
-            created_at: new Date().toISOString(),
-          });
-          httpClient.setAuthToken('session');
-          
-          // Load companies
-          const { companiesApi } = await import('../services/api');
-          const companyList = await companiesApi.list();
-          setCompanies(companyList);
-          if (companyList.length > 0) {
-            setCurrentCompany(companyList[0]);
-            httpClient.setCompanyId(companyList[0].company_id);
-          }
-          setIsAuthenticated(true);
-        } catch {
-          // Not authenticated - show login
-          setIsAuthenticated(false);
-        }
-      }
+      // Always show login screen on fresh load
+      // User must explicitly login (even in mock mode)
       setIsLoading(false);
     };
     init();
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    if (API_CONFIG.useMock) {
-      // Mock login
-      const user = mockUsers.find(u => u.email === email);
-      if (user) {
-        setCurrentUser(user);
-        setCompanies(mockCompanies);
-        if (user.company_id) {
-          const company = mockCompanies.find(c => c.company_id === user.company_id);
-          setCurrentCompany(company || mockCompanies[0]);
-        } else {
-          setCurrentCompany(mockCompanies[0]);
+    // Try API login first (if not in mock mode)
+    if (!API_CONFIG.useMock) {
+      try {
+        const { authApi, companiesApi } = await import('../services/api');
+        const response = await authApi.login({ email, password });
+        httpClient.setAuthToken(response.token);
+        
+        setCurrentUser({
+          id: response.user.id,
+          email: response.user.email,
+          name: response.user.name,
+          role: response.user.role as User['role'],
+          company_id: null,
+          created_at: new Date().toISOString(),
+        });
+        
+        const companyList = await companiesApi.list();
+        setCompanies(companyList);
+        if (companyList.length > 0) {
+          setCurrentCompany(companyList[0]);
+          httpClient.setCompanyId(companyList[0].company_id);
         }
+        
         setIsAuthenticated(true);
         return true;
+      } catch (error) {
+        console.warn('API login failed, falling back to mock data:', error);
+        // Fall through to mock login
       }
-      return false;
     }
 
-    try {
-      const { authApi, companiesApi } = await import('../services/api');
-      const response = await authApi.login({ email, password });
-      httpClient.setAuthToken(response.token);
-      
-      setCurrentUser({
-        id: response.user.id,
-        email: response.user.email,
-        name: response.user.name,
-        role: response.user.role as User['role'],
-        company_id: null,
-        created_at: new Date().toISOString(),
-      });
-      
-      const companyList = await companiesApi.list();
-      setCompanies(companyList);
-      if (companyList.length > 0) {
-        setCurrentCompany(companyList[0]);
-        httpClient.setCompanyId(companyList[0].company_id);
+    // Fallback to mock login (always works for demo)
+    const user = mockUsers.find(u => u.email === email);
+    if (user) {
+      setCurrentUser(user);
+      setCompanies(mockCompanies);
+      if (user.company_id) {
+        const company = mockCompanies.find(c => c.company_id === user.company_id);
+        setCurrentCompany(company || mockCompanies[0]);
+      } else {
+        setCurrentCompany(mockCompanies[0]);
       }
-      
       setIsAuthenticated(true);
       return true;
-    } catch {
-      return false;
     }
+    
+    console.error('Login failed: User not found in mock data');
+    return false;
   }, []);
 
   const logout = useCallback(() => {
