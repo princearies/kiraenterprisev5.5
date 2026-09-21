@@ -856,8 +856,9 @@ async function getBalanceSheet(env: Env, companyId: string, _dateFrom: string, _
   const totalEquity = equity.reduce((sum, a) => sum + Math.abs(a.balance), 0);
 
   // Get net profit from P&L
+  // For revenue/expense: profit = credit - debit (revenue is credit balance, expense is debit balance)
   const pnlResult = await env.DB.prepare(
-    `SELECT COALESCE(SUM(jl.debit), 0) - COALESCE(SUM(jl.credit), 0) as net_profit
+    `SELECT COALESCE(SUM(jl.credit), 0) - COALESCE(SUM(jl.debit), 0) as net_profit
      FROM chart_of_accounts ca
      LEFT JOIN journal_lines jl ON jl.account_id = ca.id
      LEFT JOIN journal_entries je ON je.id = jl.journal_id AND je.status = 'posted'
@@ -954,7 +955,7 @@ async function handleInvoices(request: Request, env: Env, auth: AuthContext, pat
         'SELECT rate_percent FROM tax_codes WHERE company_id = ? AND code = ? AND is_active = 1'
       ).bind(companyId, body.tax_code).first();
       if (taxCode) {
-        taxRate = ((taxCode as Record<string, number>)?.rate_percent) || 0.06;
+        taxRate = ((taxCode as Record<string, number>)?.rate_percent ?? 6) / 100;
       }
     }
     
