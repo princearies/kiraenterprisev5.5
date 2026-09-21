@@ -1,5 +1,36 @@
+# Dependencies
 node_modules/
-.next/
+.pnp
+.pnp.js
+
+# Build output
 dist/
 build/
+
+# Environment files (NEVER commit secrets)
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cloudflare
+.wrangler/
+.dev.vars
+
+# Testing
+coverage/
+
+# Logs
 *.log
+npm-debug.log*
+.next/

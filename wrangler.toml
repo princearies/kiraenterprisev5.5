@@ -1,0 +1,51 @@
+# KiraEnterprise v5.5 - Wrangler Configuration
+# Cloudflare Workers + Pages configuration
+# Replace placeholder values with your actual Cloudflare resources
+
+name = "kiraenterprise"
+compatibility_date = "2024-01-01"
+main = "workers/index.ts"
+
+# Pages configuration
+pages_build_output_dir = "dist"
+
+# D1 Database Binding (Local Development - placeholder)
+[[d1_databases]]
+binding = "DB"
+database_name = "kiraenterprise-db"
+database_id = "PLACEHOLDER-REPLACE-WITH-YOUR-D1-ID"
+
+# R2 Bucket Binding (placeholder)
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "kiraenterprise-documents"
+
+# ============================================
+# Staging Environment
+# ============================================
+[env.staging]
+name = "kiraenterprise-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "kiraenterprise-db-staging"
+database_id = "PLACEHOLDER-STAGING-D1-ID"
+
+[[env.staging.r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "kiraenterprise-documents-staging"
+
+# ============================================
+# Production Environment
+# ============================================
+[env.production]
+name = "kiraenterprise-production"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "kiraenterprise-db-production"
+database_id = "PLACEHOLDER-PRODUCTION-D1-ID"
+
+[[env.production.r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "kiraenterprise-documents-production"

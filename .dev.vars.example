@@ -1,0 +1,29 @@
+# KiraEnterprise v5.5 - Worker Secrets (Development)
+# Copy this file to .dev.vars and fill in values
+# NEVER commit .dev.vars to version control
+
+# Authentication
+AUTH_SECRET=change-this-to-a-random-secret-in-production
+
+# Database (set by wrangler d1 create)
+# D1_DATABASE_ID=your-d1-database-id
+
+# R2 Storage
+R2_BUCKET_NAME=kiraenterprise-documents
+
+# e-Invoice / MyInvois (LHDN)
+# DO NOT use real credentials in development
+MYINVOIS_CLIENT_ID=mock-client-id
+MYINVOIS_CLIENT_SECRET=mock-client-secret
+MYINVOIS_API_URL=https://mock.myinvois.hasil.gov.my
+
+# Payment Provider
+# DO NOT use real payment keys in development
+PAYMENT_PROVIDER_KEY=mock-payment-key
+PAYMENT_PROVIDER_SECRET=mock-payment-secret
+
+# Email (for notifications)
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
