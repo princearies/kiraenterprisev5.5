@@ -68,7 +68,7 @@ export default {
         if (path.startsWith('/api/reports')) return handleReports(request, env, auth, path, url);
         if (path.startsWith('/api/invoices')) return handleInvoices(request, env, auth, path, url);
         if (path.startsWith('/api/audit-logs')) return handleAuditLogs(request, env, auth, url);
-        if (path === '/api/auth/me') return jsonResponse({  { id: auth.userId, role: auth.role } });
+        if (path === '/api/auth/me') return jsonResponse({ data: { id: auth.userId, role: auth.role } });
         if (path === '/api/auth/logout') return jsonResponse({ message: 'Logged out' });
 
         return errorResponse('Not found', 404);
@@ -157,7 +157,7 @@ async function handleCompanies(request: Request, env: Env, auth: AuthContext, pa
     const companies = await env.DB.prepare(
       `SELECT * FROM companies WHERE status = 'active' ORDER BY company_code`
     ).all();
-    return jsonResponse({  companies.results });
+    return jsonResponse({ data: companies.results });
   }
 
   // POST /api/companies - create
@@ -186,7 +186,7 @@ async function handleCompanies(request: Request, env: Env, auth: AuthContext, pa
     await createAuditLog(env, auth.userId, companyId, 'create', 'company', companyId, `Created company ${body.company_code}`, request);
 
     const company = await env.DB.prepare('SELECT * FROM companies WHERE company_id = ?').bind(companyId).first();
-    return jsonResponse({  company }, 201);
+    return jsonResponse({ data: company }, 201);
   }
 
   // GET /api/companies/:id
@@ -197,7 +197,7 @@ async function handleCompanies(request: Request, env: Env, auth: AuthContext, pa
     }
     const company = await env.DB.prepare('SELECT * FROM companies WHERE company_id = ?').bind(companyId).first();
     if (!company) return errorResponse('Company not found', 404);
-    return jsonResponse({  company });
+    return jsonResponse({ data: company });
   }
 
   // PUT /api/companies/:id
@@ -215,7 +215,7 @@ async function handleCompanies(request: Request, env: Env, auth: AuthContext, pa
     }
     await createAuditLog(env, auth.userId, companyId, 'edit', 'company', companyId, 'Updated company', request);
     const company = await env.DB.prepare('SELECT * FROM companies WHERE company_id = ?').bind(companyId).first();
-    return jsonResponse({  company });
+    return jsonResponse({ data: company });
   }
 
   return errorResponse('Not found', 404);
@@ -238,7 +238,7 @@ async function handleAccounts(request: Request, env: Env, auth: AuthContext, pat
     const accounts = await env.DB.prepare(
       'SELECT * FROM chart_of_accounts WHERE company_id = ? AND is_active = 1 ORDER BY code'
     ).bind(companyId).all();
-    return jsonResponse({  accounts.results });
+    return jsonResponse({ data: accounts.results });
   }
 
   // POST /api/accounts
@@ -258,7 +258,7 @@ async function handleAccounts(request: Request, env: Env, auth: AuthContext, pat
 
     await createAuditLog(env, auth.userId, companyId, 'create', 'account', accountId, `Created account ${body.code}`, request);
     const account = await env.DB.prepare('SELECT * FROM chart_of_accounts WHERE id = ?').bind(accountId).first();
-    return jsonResponse({  account }, 201);
+    return jsonResponse({ data: account }, 201);
   }
 
   // PUT /api/accounts/:id
@@ -273,7 +273,7 @@ async function handleAccounts(request: Request, env: Env, auth: AuthContext, pat
     }
     await createAuditLog(env, auth.userId, companyId, 'edit', 'account', accountId, 'Updated account', request);
     const account = await env.DB.prepare('SELECT * FROM chart_of_accounts WHERE id = ?').bind(accountId).first();
-    return jsonResponse({  account });
+    return jsonResponse({ data: account });
   }
 
   return errorResponse('Not found', 404);
@@ -310,7 +310,7 @@ async function handleJournals(request: Request, env: Env, auth: AuthContext, pat
     query += ' ORDER BY entry_date DESC, entry_number DESC';
     
     const journals = await env.DB.prepare(query).bind(...params).all();
-    return jsonResponse({  journals.results });
+    return jsonResponse({ data: journals.results });
   }
 
   // POST /api/journals - create
@@ -355,7 +355,7 @@ async function handleJournals(request: Request, env: Env, auth: AuthContext, pat
 
     await createAuditLog(env, auth.userId, companyId, 'create', 'journal', journalId, `Created journal ${entryNumber}`, request);
     const entry = await env.DB.prepare('SELECT * FROM journal_entries WHERE id = ?').bind(journalId).first();
-    return jsonResponse({  entry }, 201);
+    return jsonResponse({ data: entry }, 201);
   }
 
   // GET /api/journals/:id
@@ -364,7 +364,7 @@ async function handleJournals(request: Request, env: Env, auth: AuthContext, pat
     const entry = await env.DB.prepare('SELECT * FROM journal_entries WHERE id = ? AND company_id = ?').bind(journalId, companyId).first();
     if (!entry) return errorResponse('Journal not found', 404);
     const lines = await env.DB.prepare('SELECT * FROM journal_lines WHERE journal_id = ?').bind(journalId).all();
-    return jsonResponse({  { entry, lines: lines.results } });
+    return jsonResponse({ data: { entry, lines: lines.results } });
   }
 
   // POST /api/journals/:id/post
@@ -379,7 +379,7 @@ async function handleJournals(request: Request, env: Env, auth: AuthContext, pat
 
     await createAuditLog(env, auth.userId, companyId, 'post', 'journal', journalId, 'Posted journal entry', request);
     const updated = await env.DB.prepare('SELECT * FROM journal_entries WHERE id = ?').bind(journalId).first();
-    return jsonResponse({  updated });
+    return jsonResponse({ data: updated });
   }
 
   // POST /api/journals/:id/reverse
@@ -414,7 +414,7 @@ async function handleJournals(request: Request, env: Env, auth: AuthContext, pat
 
     await createAuditLog(env, auth.userId, companyId, 'reverse', 'journal', journalId, `Reversed: ${body.reason}`, request);
     const reversal = await env.DB.prepare('SELECT * FROM journal_entries WHERE id = ?').bind(reversalId).first();
-    return jsonResponse({  reversal }, 201);
+    return jsonResponse({ data: reversal }, 201);
   }
 
   // DELETE /api/journals/:id (only drafts)
@@ -616,7 +616,7 @@ async function handleInvoices(request: Request, env: Env, auth: AuthContext, pat
     if (status && status !== 'all') { query += ' AND status = ?'; params.push(status); }
     query += ' ORDER BY date DESC';
     const invoices = await env.DB.prepare(query).bind(...params).all();
-    return jsonResponse({  invoices.results });
+    return jsonResponse({ data: invoices.results });
   }
 
   // POST /api/invoices
@@ -636,7 +636,7 @@ async function handleInvoices(request: Request, env: Env, auth: AuthContext, pat
 
     await createAuditLog(env, auth.userId, companyId, 'create', 'invoice', invoiceId, `Created invoice ${invoiceNumber}`, request);
     const invoice = await env.DB.prepare('SELECT * FROM invoices WHERE id = ?').bind(invoiceId).first();
-    return jsonResponse({  invoice }, 201);
+    return jsonResponse({ data: invoice }, 201);
   }
 
   return errorResponse('Not found', 404);
@@ -655,7 +655,7 @@ async function handleAuditLogs(request: Request, env: Env, auth: AuthContext, ur
     'SELECT * FROM audit_logs WHERE company_id = ? ORDER BY created_at DESC LIMIT 100'
   ).bind(companyId).all();
 
-  return jsonResponse({  logs.results });
+  return jsonResponse({ data: logs.results });
 }
 
 // ============ Helpers ============
