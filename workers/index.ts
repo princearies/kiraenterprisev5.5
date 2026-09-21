@@ -903,13 +903,26 @@ async function getDashboardStats(env: Env, companyId: string): Promise<Response>
     `SELECT COUNT(*) as count FROM e_invoices WHERE company_id = ? AND status IN ('rejected', 'invalid')`
   ).bind(companyId).first();
 
+  // Calculate profit for current financial year from P&L
+  const currentYear = new Date().getFullYear();
+  const profitResult = await env.DB.prepare(
+    `SELECT COALESCE(SUM(jl.credit), 0) - COALESCE(SUM(jl.debit), 0) as profit
+     FROM chart_of_accounts ca
+     LEFT JOIN journal_lines jl ON jl.account_id = ca.id
+     LEFT JOIN journal_entries je ON je.id = jl.journal_id AND je.status = 'posted'
+     WHERE ca.company_id = ? AND ca.is_active = 1 AND ca.parent_id IS NOT NULL
+       AND ca.type IN ('revenue', 'expense')`
+  ).bind(companyId).first();
+
+  const profitForPeriod = ((profitResult as Record<string, number>)?.profit) || 0;
+
   return jsonResponse({
     activeCompanies: 1,
-    currentFinancialYear: '2024',
+    currentFinancialYear: String(currentYear),
     unpaidInvoices: ((unpaidInvoices as Record<string, number>)?.total) || 0,
     unpaidBills: 0,
     cashBalance: ((cashBalance as Record<string, number>)?.balance) || 0,
-    profitForPeriod: 0,
+    profitForPeriod,
     eInvoiceErrors: ((einvoiceErrors as Record<string, number>)?.count) || 0,
     missingDocuments: 0,
     yearEndReadiness: 0,
