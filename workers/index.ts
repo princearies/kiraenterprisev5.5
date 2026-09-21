@@ -11,12 +11,12 @@
 
 export interface Env {
   DB: D1Database;
-  DOCUMENTS: R2Bucket;
-  AUTH_SECRET: string;
-  MYINVOIS_CLIENT_ID: string;
-  MYINVOIS_CLIENT_SECRET: string;
-  MYINVOIS_API_URL: string;
-  PAYMENT_PROVIDER_KEY: string;
+  DOCUMENTS?: R2Bucket; // Optional - create bucket with: wrangler r2 bucket create kiraenterprise-documents
+  AUTH_SECRET?: string;
+  MYINVOIS_CLIENT_ID?: string;
+  MYINVOIS_CLIENT_SECRET?: string;
+  MYINVOIS_API_URL?: string;
+  PAYMENT_PROVIDER_KEY?: string;
 }
 
 interface AuthContext {
