@@ -1,5 +1,11 @@
 # Deployment Fix - R2 Bucket Issue
 
+## Current Configuration
+- **Worker Name**: `kiraenterprisev5-5`
+- **D1 Database Name**: `name`
+- **D1 Database ID**: `134deb69-2609-4b84-8e5c-079aa8d9ba3a`
+- **R2 Bucket**: Disabled (commented out in wrangler.toml)
+
 ## Problem
 The deployment failed with error:
 ```

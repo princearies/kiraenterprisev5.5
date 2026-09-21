@@ -2,7 +2,7 @@
 # Cloudflare Workers configuration
 #
 # D1 Database:
-#   Name: kiraenterprise-db
+#   Name: name
 #   ID: 134deb69-2609-4b84-8e5c-079aa8d9ba3a
 #
 # Production Worker URL: https://kiraenterprisev5-5.mykira.workers.dev
@@ -18,7 +18,7 @@ main = "workers/index.ts"
 # D1 Database Binding
 [[d1_databases]]
 binding = "DB"
-database_name = "kiraenterprise-db"
+database_name = "name"
 database_id = "134deb69-2609-4b84-8e5c-079aa8d9ba3a"
 
 # R2 Bucket Binding (uncomment after creating the bucket)
