@@ -1,12 +1,26 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { dashboardStats, companies, invoices, eInvoices, yearEndPackages } from '../store/mockData';
+import { useDashboardStats } from '../hooks/useData';
+import { LoadingState, ErrorState } from '../components/ui/States';
+import { formatCurrency } from '../utils/currency';
 import { Building2, DollarSign, FileWarning, AlertCircle, TrendingUp, CalendarCheck, CreditCard, FileX, CheckCircle2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { formatCurrency, fromCents } from '../utils/currency';
+import { invoices, eInvoices } from '../store/mockData';
 
 export default function Dashboard() {
   const { currentCompany } = useApp();
-  const stats = dashboardStats;
+  const { data: stats, loading, error, refetch } = useDashboardStats();
+
+  if (loading) {
+    return <LoadingState message="Loading dashboard..." />;
+  }
+
+  if (error) {
+    return <ErrorState message="Failed to load dashboard" onRetry={refetch} details={error} />;
+  }
+
+  if (!stats) {
+    return <ErrorState message="No data available" onRetry={refetch} />;
+  }
 
   const widgets = [
     { label: 'Active Companies', value: stats.activeCompanies.toString(), icon: Building2, color: 'bg-blue-500', change: null },
@@ -78,23 +92,27 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="font-semibold text-gray-800 mb-4">Recent Invoices</h3>
           <div className="space-y-3">
-            {recentInvoices.map(inv => (
-              <div key={inv.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-800">{inv.invoice_number}</p>
-                  <p className="text-xs text-gray-500">{inv.date}</p>
+            {recentInvoices.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No invoices yet</p>
+            ) : (
+              recentInvoices.map(inv => (
+                <div key={inv.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{inv.invoice_number}</p>
+                    <p className="text-xs text-gray-500">{inv.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold">{formatCurrency(inv.total)}</p>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                      inv.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                      inv.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                      inv.status === 'partially_paid' ? 'bg-amber-100 text-amber-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>{inv.status.replace('_', ' ')}</span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold">{formatCurrency(inv.total)}</p>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                    inv.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
-                    inv.status === 'overdue' ? 'bg-red-100 text-red-700' :
-                    inv.status === 'partially_paid' ? 'bg-amber-100 text-amber-700' :
-                    'bg-blue-100 text-blue-700'
-                  }`}>{inv.status.replace('_', ' ')}</span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -102,20 +120,24 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="font-semibold text-gray-800 mb-4">e-Invoice Status</h3>
           <div className="space-y-3">
-            {recentEInvoices.map(ei => (
-              <div key={ei.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-800">{ei.invoice_number}</p>
-                  <p className="text-xs text-gray-500">{ei.buyer_name}</p>
+            {recentEInvoices.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No e-Invoices yet</p>
+            ) : (
+              recentEInvoices.map(ei => (
+                <div key={ei.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{ei.invoice_number}</p>
+                    <p className="text-xs text-gray-500">{ei.buyer_name}</p>
+                  </div>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    ei.status === 'valid' ? 'bg-emerald-100 text-emerald-700' :
+                    ei.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                    ei.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>{ei.status}</span>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                  ei.status === 'valid' ? 'bg-emerald-100 text-emerald-700' :
-                  ei.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                  ei.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-700'
-                }`}>{ei.status}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -123,7 +145,7 @@ export default function Dashboard() {
       {/* Year-End Readiness */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-800">Year-End Readiness (FY2024)</h3>
+          <h3 className="font-semibold text-gray-800">Year-End Readiness (FY{stats.currentFinancialYear})</h3>
           <span className="text-sm text-indigo-600 font-medium">{stats.yearEndReadiness}% Complete</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 mb-4">

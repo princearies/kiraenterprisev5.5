@@ -1,6 +1,11 @@
 # KiraEnterprise v5.5 - Wrangler Configuration
 # Cloudflare Workers + Pages configuration
-# Replace placeholder values with your actual Cloudflare resources
+#
+# D1 Database:
+#   Name: kiraenterprise-db
+#   ID: 134deb69-2609-4b84-8e5c-079aa8d9ba3a
+#
+# Production Worker URL: https://kiraenterprisev5-5.mykira.workers.dev
 
 name = "kiraenterprise"
 compatibility_date = "2024-01-01"
@@ -9,13 +14,17 @@ main = "workers/index.ts"
 # Pages configuration
 pages_build_output_dir = "dist"
 
-# D1 Database Binding (Local Development - placeholder)
+# ============================================
+# Default (Local Development)
+# ============================================
+
+# D1 Database Binding
 [[d1_databases]]
 binding = "DB"
 database_name = "kiraenterprise-db"
-database_id = "PLACEHOLDER-REPLACE-WITH-YOUR-D1-ID"
+database_id = "134deb69-2609-4b84-8e5c-079aa8d9ba3a"
 
-# R2 Bucket Binding (placeholder)
+# R2 Bucket Binding
 [[r2_buckets]]
 binding = "DOCUMENTS"
 bucket_name = "kiraenterprise-documents"
@@ -39,13 +48,16 @@ bucket_name = "kiraenterprise-documents-staging"
 # Production Environment
 # ============================================
 [env.production]
-name = "kiraenterprise-production"
+name = "kiraenterprisev5-5"
+routes = [
+  { pattern = "kiraenterprisev5-5.mykira.workers.dev", zone_name = "mykira.workers.dev" }
+]
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "kiraenterprise-db-production"
-database_id = "PLACEHOLDER-PRODUCTION-D1-ID"
+database_name = "kiraenterprise-db"
+database_id = "134deb69-2609-4b84-8e5c-079aa8d9ba3a"
 
 [[env.production.r2_buckets]]
 binding = "DOCUMENTS"
-bucket_name = "kiraenterprise-documents-production"
+bucket_name = "kiraenterprise-documents"
